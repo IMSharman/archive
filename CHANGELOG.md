@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.2] - 2026-10-10
+
+### Fixed
+
+- Fixed extension crash (`NoSuchMethodError: No static method runBlockingK$default`) by updating Kotlin Coroutines to 1.11.0 and keeping coroutine builders in Proguard.
+- Enabled DNS-over-HTTPS (Cloudflare) by default to prevent WiFi network DNS blocking and connection resets when browsing via VPN.
+
 ## [v1.0.1] - 2026-10-10
 
 ### Fixed
