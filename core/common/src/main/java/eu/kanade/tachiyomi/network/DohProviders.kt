@@ -1,8 +1,10 @@
 package eu.kanade.tachiyomi.network
 
+import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
+import java.net.Inet4Address
 import java.net.InetAddress
 
 /**
@@ -23,107 +25,114 @@ const val PREF_DOH_NJALLA = 11
 const val PREF_DOH_SHECAN = 12
 const val PREF_DOH_LIBREDNS = 13
 
+class IPv4PreferredDns(private val delegate: Dns) : Dns {
+    override fun lookup(hostname: String): List<InetAddress> {
+        val addresses = delegate.lookup(hostname)
+        val (ipv4, _) = addresses.partition { it is Inet4Address }
+        return if (ipv4.isNotEmpty()) ipv4 else addresses
+    }
+}
+
+private fun OkHttpClient.Builder.buildDoh(
+    url: String,
+    bootstrapIps: List<String>,
+): Dns {
+    return IPv4PreferredDns(
+        DnsOverHttps.Builder().client(build())
+            .url(url.toHttpUrl())
+            .bootstrapDnsHosts(bootstrapIps.map { InetAddress.getByName(it) })
+            .includeIPv6(false)
+            .build(),
+    )
+}
+
 fun OkHttpClient.Builder.dohCloudflare() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://cloudflare-dns.com/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("162.159.36.1"),
-            InetAddress.getByName("162.159.46.1"),
-            InetAddress.getByName("1.1.1.1"),
-            InetAddress.getByName("1.0.0.1"),
-            InetAddress.getByName("162.159.132.53"),
-            InetAddress.getByName("2606:4700:4700::1111"),
-            InetAddress.getByName("2606:4700:4700::1001"),
-            InetAddress.getByName("2606:4700:4700::0064"),
-            InetAddress.getByName("2606:4700:4700::6400"),
-        )
-        .build(),
+    buildDoh(
+        "https://cloudflare-dns.com/dns-query",
+        listOf(
+            "162.159.36.1",
+            "162.159.46.1",
+            "1.1.1.1",
+            "1.0.0.1",
+            "162.159.132.53",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.dohGoogle() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns.google/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("8.8.4.4"),
-            InetAddress.getByName("8.8.8.8"),
-            InetAddress.getByName("2001:4860:4860::8888"),
-            InetAddress.getByName("2001:4860:4860::8844"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.google/dns-query",
+        listOf(
+            "8.8.4.4",
+            "8.8.8.8",
+        ),
+    ),
 )
 
 // AdGuard "Default" DNS works too but for the sake of making sure no site is blacklisted,
 // we use "Unfiltered"
 fun OkHttpClient.Builder.dohAdGuard() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns-unfiltered.adguard.com/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("94.140.14.140"),
-            InetAddress.getByName("94.140.14.141"),
-            InetAddress.getByName("2a10:50c0::1:ff"),
-            InetAddress.getByName("2a10:50c0::2:ff"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns-unfiltered.adguard.com/dns-query",
+        listOf(
+            "94.140.14.140",
+            "94.140.14.141",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.dohQuad9() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns.quad9.net/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("9.9.9.9"),
-            InetAddress.getByName("149.112.112.112"),
-            InetAddress.getByName("2620:fe::fe"),
-            InetAddress.getByName("2620:fe::9"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.quad9.net/dns-query",
+        listOf(
+            "9.9.9.9",
+            "149.112.112.112",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.dohAliDNS() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns.alidns.com/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("223.5.5.5"),
-            InetAddress.getByName("223.6.6.6"),
-            InetAddress.getByName("2400:3200::1"),
-            InetAddress.getByName("2400:3200:baba::1"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.alidns.com/dns-query",
+        listOf(
+            "223.5.5.5",
+            "223.6.6.6",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.dohDNSPod() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://doh.pub/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("1.12.12.12"),
-            InetAddress.getByName("120.53.53.53"),
-        )
-        .build(),
+    buildDoh(
+        "https://doh.pub/dns-query",
+        listOf(
+            "1.12.12.12",
+            "120.53.53.53",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.doh360() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://doh.360.cn/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("101.226.4.6"),
-            InetAddress.getByName("218.30.118.6"),
-            InetAddress.getByName("123.125.81.6"),
-            InetAddress.getByName("140.207.198.6"),
-            InetAddress.getByName("180.163.249.75"),
-            InetAddress.getByName("101.199.113.208"),
-            InetAddress.getByName("36.99.170.86"),
-        )
-        .build(),
+    buildDoh(
+        "https://doh.360.cn/dns-query",
+        listOf(
+            "101.226.4.6",
+            "218.30.118.6",
+            "123.125.81.6",
+            "140.207.198.6",
+            "180.163.249.75",
+            "101.199.113.208",
+            "36.99.170.86",
+        ),
+    ),
 )
 
 fun OkHttpClient.Builder.dohQuad101() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns.twnic.tw/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("101.101.101.101"),
-            InetAddress.getByName("2001:de4::101"),
-            InetAddress.getByName("2001:de4::102"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.twnic.tw/dns-query",
+        listOf(
+            "101.101.101.101",
+        ),
+    ),
 )
 
 /*
@@ -132,13 +141,12 @@ fun OkHttpClient.Builder.dohQuad101() = dns(
  * Source: https://mullvad.net/en/help/dns-over-https-and-dns-over-tls
  */
 fun OkHttpClient.Builder.dohMullvad() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url(" https://dns.mullvad.net/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("194.242.2.2"),
-            InetAddress.getByName("2a07:e340::2"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.mullvad.net/dns-query",
+        listOf(
+            "194.242.2.2",
+        ),
+    ),
 )
 
 /*
@@ -147,15 +155,13 @@ fun OkHttpClient.Builder.dohMullvad() = dns(
  * Source: https://controld.com/free-dns/?
  */
 fun OkHttpClient.Builder.dohControlD() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://freedns.controld.com/p0".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("76.76.2.0"),
-            InetAddress.getByName("76.76.10.0"),
-            InetAddress.getByName("2606:1a40::"),
-            InetAddress.getByName("2606:1a40:1::"),
-        )
-        .build(),
+    buildDoh(
+        "https://freedns.controld.com/p0",
+        listOf(
+            "76.76.2.0",
+            "76.76.10.0",
+        ),
+    ),
 )
 
 /*
@@ -163,37 +169,35 @@ fun OkHttpClient.Builder.dohControlD() = dns(
  * Non logging and uncensored
  */
 fun OkHttpClient.Builder.dohNajalla() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://dns.njal.la/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("95.215.19.53"),
-            InetAddress.getByName("2001:67c:2354:2::53"),
-        )
-        .build(),
+    buildDoh(
+        "https://dns.njal.la/dns-query",
+        listOf(
+            "95.215.19.53",
+        ),
+    ),
 )
 
 /**
  * Source: https://shecan.ir/
  */
 fun OkHttpClient.Builder.dohShecan() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://free.shecan.ir/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("178.22.122.100"),
-            InetAddress.getByName("185.51.200.2"),
-        )
-        .build(),
+    buildDoh(
+        "https://free.shecan.ir/dns-query",
+        listOf(
+            "178.22.122.100",
+            "185.51.200.2",
+        ),
+    ),
 )
 
 /**
  * Source: https://libredns.gr/
  */
 fun OkHttpClient.Builder.dohLibreDNS() = dns(
-    DnsOverHttps.Builder().client(build())
-        .url("https://doh.libredns.gr/dns-query".toHttpUrl())
-        .bootstrapDnsHosts(
-            InetAddress.getByName("116.202.176.26"),
-            InetAddress.getByName("2a01:4f8:1c0c:8274::1"),
-        )
-        .build(),
+    buildDoh(
+        "https://doh.libredns.gr/dns-query",
+        listOf(
+            "116.202.176.26",
+        ),
+    ),
 )

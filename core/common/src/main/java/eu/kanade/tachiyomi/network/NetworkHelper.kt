@@ -23,6 +23,7 @@ class NetworkHelper(
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .callTimeout(2, TimeUnit.MINUTES)
+            .fastFallback(true)
             .cache(
                 Cache(
                     directory = File(context.cacheDir, "network_cache"),
@@ -53,7 +54,7 @@ class NetworkHelper(
             PREF_DOH_NJALLA -> builder.dohNajalla()
             PREF_DOH_SHECAN -> builder.dohShecan()
             PREF_DOH_LIBREDNS -> builder.dohLibreDNS()
-            else -> builder
+            else -> builder.dns(IPv4PreferredDns(okhttp3.Dns.SYSTEM))
         }
     }
 

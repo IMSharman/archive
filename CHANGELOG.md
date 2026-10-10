@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.3] - 2026-10-10
+
+### Fixed
+
+- Fixed WiFi connection resets when using VPN by enforcing IPv4-only DNS resolution, eliminating IPv6 bootstrap hosts, and prioritizing IPv4 sockets across all network requests (preventing IPv6 traffic leaks outside the VPN tunnel).
+- Enabled OkHttp Fast Fallback (Happy Eyeballs RFC 8305) on the main HTTP client.
+
 ## [v1.0.2] - 2026-10-10
 
 ### Fixed
