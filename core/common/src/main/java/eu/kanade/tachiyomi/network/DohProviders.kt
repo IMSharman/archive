@@ -33,7 +33,21 @@ class IPv4PreferredDns(private val delegate: Dns) : Dns {
     }
 }
 
-private fun OkHttpClient.Builder.buildDoh(
+class ResilientDns(
+    private val primary: Dns,
+    private val fallback: Dns,
+) : Dns {
+    override fun lookup(hostname: String): List<InetAddress> {
+        return try {
+            val addresses = primary.lookup(hostname)
+            if (addresses.isNotEmpty()) addresses else fallback.lookup(hostname)
+        } catch (_: Exception) {
+            fallback.lookup(hostname)
+        }
+    }
+}
+
+internal fun OkHttpClient.Builder.buildDoh(
     url: String,
     bootstrapIps: List<String>,
 ): Dns {

@@ -10,6 +10,14 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.4] - 2026-10-11
+
+### Fixed
+
+- Fixed connection resets on Wi-Fi when using VPN by explicitly binding the entire app process to active VPN network interfaces (`ConnectivityManager.bindProcessToNetwork`), preventing dual-stack Wi-Fi socket and DNS leaks.
+- Added automatic DNS failover (`ResilientDns`) to seamlessly fallback to Google DoH if a chosen DNS provider (e.g. Cloudflare) is blocked or reset by Wi-Fi firewalls.
+- Added `ConnectionResetRetryInterceptor` and enabled `retryOnConnectionFailure` to gracefully retry connections interrupted by firewall RST packets.
+
 ## [v1.0.3] - 2026-10-10
 
 ### Fixed
