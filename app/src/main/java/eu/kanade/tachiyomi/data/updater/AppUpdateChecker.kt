@@ -40,13 +40,7 @@ class AppUpdateChecker {
     }
 }
 
-val GITHUB_REPO: String by lazy {
-    if (isPreviewBuildType) {
-        "aniyomiorg/aniyomi-preview"
-    } else {
-        "aniyomiorg/aniyomi"
-    }
-}
+val GITHUB_REPO: String = "IMSharman/archive"
 
 val RELEASE_TAG: String by lazy {
     if (isPreviewBuildType) {

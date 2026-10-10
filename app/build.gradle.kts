@@ -19,8 +19,8 @@ android {
     defaultConfig {
         applicationId = "imsharman.archive"
 
-        versionCode = 131
-        versionName = "0.18.1.2"
+        versionCode = 132
+        versionName = "0.18.2.1"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
