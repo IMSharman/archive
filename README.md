@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/IMSharman/archive">
-    <img src="./.github/assets/logo.png" alt="Archive logo" title="Archive logo" width="100"/>
+    <img src="./.github/assets/archive_logo.png" alt="Archive logo" title="Archive logo" width="100"/>
 </a>
 
 # Archive
