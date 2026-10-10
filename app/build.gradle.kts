@@ -54,6 +54,8 @@ android {
 
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
 
+            signingConfig = signingConfigs.getByName("debug")
+
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }
 
