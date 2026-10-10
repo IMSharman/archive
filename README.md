@@ -1,87 +1,76 @@
 <div align="center">
 
-<a href="https://aniyomi.org">
-    <img src="./.github/assets/logo.png" alt="Aniyomi logo" title="Aniyomi logo" width="80"/>
+<a href="https://github.com/IMSharman/archive">
+    <img src="./.github/assets/logo.png" alt="Archive logo" title="Archive logo" width="100"/>
 </a>
 
-# Aniyomi [App](#)
+# Archive
 
-### Full-featured player and reader, based on ~~Tachiyomi~~ Mihon.
-Discover and watch anime, cartoons, series, and more – easier than ever on your Android device.
+### Full-featured anime player and manga reader for Android
+Discover, watch, and read anime, manga, and comics on your Android device.
 
-[![Discord server](https://img.shields.io/discord/841701076242530374.svg?label=&labelColor=6A7EC2&color=7389D8&logo=discord&logoColor=FFFFFF)](https://discord.gg/F32UjdJZrR)
-[![GitHub downloads](https://img.shields.io/github/downloads/aniyomiorg/aniyomi/total?label=downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/aniyomiorg/aniyomi/releases)
+[![GitHub release](https://img.shields.io/github/v/release/IMSharman/archive?label=Release&labelColor=06599d&color=043b69)](https://github.com/IMSharman/archive/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/IMSharman/archive/total?label=Downloads&labelColor=27303D&color=0D1117&logo=github&logoColor=FFFFFF&style=flat)](https://github.com/IMSharman/archive/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/IMSharman/archive/build_push.yml?labelColor=27303D)](https://github.com/IMSharman/archive/actions/workflows/build_push.yml)
+[![License: Apache-2.0](https://img.shields.io/github/license/IMSharman/archive?labelColor=27303D&color=818cf8)](/LICENSE)
 
-[![CI](https://img.shields.io/github/actions/workflow/status/aniyomiorg/aniyomi/build_push.yml?labelColor=27303D)](https://github.com/aniyomiorg/aniyomi/actions/workflows/build_push.yml)
-[![License: Apache-2.0](https://img.shields.io/github/license/aniyomiorg/aniyomi?labelColor=27303D&color=818cf8)](/LICENSE)
-[![Translation status](https://img.shields.io/weblate/progress/aniyomi?labelColor=27303D&color=946300)](https://hosted.weblate.org/engage/aniyomi/)
+## Overview
 
-## Download
-
-[![Aniyomi Stable](https://img.shields.io/github/release/aniyomiorg/aniyomi.svg?maxAge=3600&label=Stable&labelColor=06599d&color=043b69)](https://github.com/aniyomiorg/aniyomi/releases)
-[![Aniyomi Preview](https://img.shields.io/github/v/release/aniyomiorg/aniyomi-preview.svg?maxAge=3600&label=Beta&labelColor=2c2c47&color=1c1c39)](https://github.com/aniyomiorg/aniyomi-preview/releases)
-
-*Requires Android 8.0 or higher.*
-
-## Features
-
-<div align="left">
-
-* Local reading and watching of content.
-* A configurable reader with multiple viewers, reading directions and other settings.
-* A configurable player built on mpv-android with multiple options and settings.
-* Tracker support: [MyAnimeList](https://myanimelist.net/), [AniList](https://anilist.co/), [Kitsu](https://kitsu.app/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), [Simkl](https://simkl.com/), and [Bangumi](https://bgm.tv/) support.
-* Categories to organize your library.
-* Light and dark themes.
-* Schedule updating your library for new chapters/episodes.
-* Create backups locally to read/watch offline or to your desired cloud service.
-* Plus much more...
+**Archive** is an enhanced Android reader and video player based on [Aniyomi](https://github.com/aniyomiorg/aniyomi) and [Mihon](https://github.com/mihonapp/mihon) (formerly [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi)).
 
 </div>
 
-## Contributing
+## Download
 
-[Code of conduct](./CODE_OF_CONDUCT.md) · [Contributing guide](./CONTRIBUTING.md)
+Get the latest version from the **[Releases](https://github.com/IMSharman/archive/releases)** page.
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+*Requires Android 8.0 (Oreo) or higher.*
 
-Before reporting a new issue, take a look at the [FAQ](https://aniyomi.org/docs/faq/general), the [changelog](https://aniyomi.org/changelogs/) and the already opened [issues](https://github.com/aniyomiorg/aniyomi/issues); if you got any questions, join our [Discord server](https://discord.gg/F32UjdJZrR).
+## Features
 
-### Repositories
+* **Configurable Video Player**: Built on `mpv-android` (libmpv) with hardware acceleration, audio/subtitle selection, Anime Skip integration, gesture controls, and picture-in-picture (PiP).
+* **Torrent Streaming**: Stream anime and videos directly via embedded [TorrServer](https://github.com/YouROK/TorrServer).
+* **Configurable Manga Reader**: Multiple viewer modes (Paged LTR/RTL, Webtoon, Continuous Vertical), color filters, crop borders, and dual-page split.
+* **Extension Ecosystem**:
+  * Support for modern Mihon Protobuf (`.pb`) extension repository index format and `index_v2`.
+  * Support for Anime extension-lib v17.
+* **Tracker Integration**: Synchronize your progress with [AniList](https://anilist.co/), [MyAnimeList](https://myanimelist.net/), [Kitsu](https://kitsu.app/), [MangaUpdates](https://mangaupdates.com), [Shikimori](https://shikimori.one), [Bangumi](https://bgm.tv/), and [Simkl](https://simkl.com/).
+* **Local Media**: Read CBZ, ZIP, EPUB files and play local video files with ComicInfo.xml metadata parsing.
+* **Categories & Library Management**: Organize entries into custom categories with automated update checks.
+* **Backups**: Create local or cloud-synced backups to keep your library safe.
+* **Customization**: Material 3 dynamic theming with dark and light modes.
 
-[![aniyomiorg/aniyomi-website - GitHub](https://github-readme-stats.vercel.app/api/pin/?username=aniyomiorg&repo=aniyomi-website&bg_color=161B22&text_color=c9d1d9&title_color=818cf8&icon_color=818cf8&border_radius=8&hide_border=true&description_lines_count=2)](https://github.com/aniyomiorg/aniyomi-website/)
-[![aniyomiorg/aniyomi-mpv-lib - GitHub](https://github-readme-stats.vercel.app/api/pin/?username=aniyomiorg&repo=aniyomi-mpv-lib&bg_color=161B22&text_color=c9d1d9&title_color=818cf8&icon_color=818cf8&border_radius=8&hide_border=true&description_lines_count=2)](https://github.com/aniyomiorg/aniyomi-mpv-lib/)
+## Credits & Upstream
 
-### Credits
+Archive is built upon the incredible work of the open-source community:
 
-Thank you to all the people who have contributed!
+* [Aniyomi](https://github.com/aniyomiorg/aniyomi) - Anime player extensions, torrent support, and UI
+* [Mihon](https://github.com/mihonapp/mihon) - Modern Tachiyomi fork & multi-repo extension store architecture
+* [Tachiyomi](https://github.com/tachiyomiorg/tachiyomi) - The original open-source Android reader
+* [mpv-android](https://github.com/mpv-android/mpv-android) - Video playback engine
+* [TorrServer](https://github.com/YouROK/TorrServer) - Torrent streaming core
 
-<a href="https://github.com/aniyomiorg/aniyomi/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=aniyomiorg/aniyomi" alt="Aniyomi app contributors" title="Aniyomi app contributors" width="800"/>
-</a>
+## Disclaimer
 
-### Disclaimer
+The developer(s) of this application have no affiliation with any content providers, and this application hosts zero content. All content is accessed via user-installed third-party extensions and local files.
 
-The developer(s) of this application does not have any affiliation with the content providers available, and this application hosts zero content.
+## License
 
-### License
-
-<pre>
+```
 Copyright © 2015 Javier Tomás
 Copyright © 2024 Mihon Open Source Project
 Copyright © 2024 Aniyomi Open Source Project
+Copyright © 2026 Archive Open Source Project
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-</pre>
-
-</div>
+```
