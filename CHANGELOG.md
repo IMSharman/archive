@@ -10,6 +10,12 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.1] - 2026-10-10
+
+### Fixed
+
+- Fixed crash during manga migration caused by missing Zstd / Brotli decompression classes (Keiyoushi extension compatibility).
+
 ## [v0.18.2.1] - 2026-09-14
 
 ### Added
