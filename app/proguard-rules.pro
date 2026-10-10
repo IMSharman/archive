@@ -25,6 +25,10 @@
 -keep class com.squareup.zstd.** { *; }
 -keep class org.brotli.** { *; }
 
+# Keep source model interfaces and classes for extensions (prevent stripping or inlining)
+-keep class eu.kanade.tachiyomi.source.model.** { *; }
+-keep class eu.kanade.tachiyomi.animesource.model.** { *; }
+
 # From extensions-lib
 -keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.RateLimitInterceptorKt { public protected *; }
 -keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.SpecificHostRateLimitInterceptorKt { public protected *; }

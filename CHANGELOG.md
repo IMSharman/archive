@@ -14,6 +14,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 
 ### Fixed
 
+- Fixed extension crash (`NoSuchMethodError: No interface method setMemo...`) by adding the `memo` property to `SManga` and `SChapter` for extensions-lib 17 compatibility.
 - Fixed WiFi connection resets when using VPN by enforcing IPv4-only DNS resolution, eliminating IPv6 bootstrap hosts, and prioritizing IPv4 sockets across all network requests (preventing IPv6 traffic leaks outside the VPN tunnel).
 - Enabled OkHttp Fast Fallback (Happy Eyeballs RFC 8305) on the main HTTP client.
 
