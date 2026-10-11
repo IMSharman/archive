@@ -176,6 +176,15 @@ class AnimeImageScreenModel(
         }
     }
 
+    fun addToLibraryWarning(context: Context) {
+        screenModelScope.launch {
+            snackbarHostState.showSnackbar(
+                context.stringResource(MR.strings.notification_first_add_to_library),
+                withDismissAction = true,
+            )
+        }
+    }
+
     private fun notifyImageUpdated(context: Context) {
         val updatedStringResource = if (isCover) {
             MR.strings.cover_updated

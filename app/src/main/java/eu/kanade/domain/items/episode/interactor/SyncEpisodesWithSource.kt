@@ -77,6 +77,11 @@ class SyncEpisodesWithSource(
             }
         }
 
+        // The source no longer lists these, so their queued downloads could only fail
+        removedEpisodes.mapNotNull { downloadManager.getQueuedDownloadOrNull(it.id) }
+            .takeIf { it.isNotEmpty() }
+            ?.let(downloadManager::cancelQueuedDownloads)
+
         // Used to not set upload date of older episodes
         // to a higher value than newer episodes
         var maxSeenUploadDate = 0L

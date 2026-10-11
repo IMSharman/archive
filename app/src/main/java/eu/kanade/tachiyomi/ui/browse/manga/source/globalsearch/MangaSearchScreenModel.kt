@@ -29,6 +29,7 @@ import tachiyomi.domain.entries.manga.interactor.GetManga
 import tachiyomi.domain.entries.manga.interactor.NetworkToLocalManga
 import tachiyomi.domain.entries.manga.model.Manga
 import tachiyomi.domain.source.manga.service.MangaSourceManager
+import tachiyomi.source.local.entries.manga.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.Executors
@@ -84,7 +85,7 @@ abstract class MangaSearchScreenModel(
 
     open fun getEnabledSources(): List<CatalogueSource> {
         return sourceManager.getCatalogueSources()
-            .filter { it.lang in enabledLanguages && "${it.id}" !in disabledSources }
+            .filter { (it.lang in enabledLanguages || it.isLocal()) && "${it.id}" !in disabledSources }
             .sortedWith(
                 compareBy(
                     { "${it.id}" !in pinnedSources },

@@ -29,6 +29,7 @@ import tachiyomi.domain.entries.anime.interactor.GetAnime
 import tachiyomi.domain.entries.anime.interactor.NetworkToLocalAnime
 import tachiyomi.domain.entries.anime.model.Anime
 import tachiyomi.domain.source.anime.service.AnimeSourceManager
+import tachiyomi.source.local.entries.anime.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.util.concurrent.Executors
@@ -84,7 +85,7 @@ abstract class AnimeSearchScreenModel(
 
     open fun getEnabledSources(): List<AnimeSource> {
         return sourceManager.getAll()
-            .filter { it.lang in enabledLanguages && "${it.id}" !in disabledSources }
+            .filter { (it.lang in enabledLanguages || it.isLocal()) && "${it.id}" !in disabledSources }
             .sortedWith(
                 compareBy(
                     { "${it.id}" !in pinnedSources },

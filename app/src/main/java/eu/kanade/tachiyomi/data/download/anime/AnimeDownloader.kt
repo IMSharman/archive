@@ -356,6 +356,16 @@ class AnimeDownloader(
         }
 
         val episodeDirname = provider.getEpisodeDirName(download.episode.name, download.episode.scanlator)
+
+        // Being stopped after the download is moved into place but before it's indexed leaves a finished download
+        // on disk that is still queued, and downloading it again would save a second copy next to it
+        if (animeDir.findFile(episodeDirname) != null) {
+            animeDir.findFile(episodeDirname + TMP_DIR_SUFFIX)?.delete()
+            cache.addEpisode(episodeDirname, animeDir, download.anime)
+            download.status = AnimeDownload.State.DOWNLOADED
+            return
+        }
+
         val tmpDir = animeDir.createDirectory(episodeDirname + TMP_DIR_SUFFIX)!!
 
         try {

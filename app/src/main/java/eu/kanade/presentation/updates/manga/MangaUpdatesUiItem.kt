@@ -53,16 +53,26 @@ internal fun LazyListScope.mangaUpdatesLastUpdatedItem(
     lastUpdated: Long,
 ) {
     item(key = "mangaUpdates-lastUpdated") {
-        Box(
-            modifier = Modifier
-                .animateItem(fadeInSpec = null, fadeOutSpec = null)
-                .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
-        ) {
-            Text(
-                text = stringResource(MR.strings.updates_last_update_info, relativeTimeSpanString(lastUpdated)),
-                fontStyle = FontStyle.Italic,
-            )
-        }
+        MangaUpdatesLastUpdatedHeader(
+            lastUpdated = lastUpdated,
+            modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+        )
+    }
+}
+
+@Composable
+internal fun MangaUpdatesLastUpdatedHeader(
+    lastUpdated: Long,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .padding(horizontal = MaterialTheme.padding.medium, vertical = MaterialTheme.padding.small),
+    ) {
+        Text(
+            text = stringResource(MR.strings.updates_last_update_info, relativeTimeSpanString(lastUpdated)),
+            fontStyle = FontStyle.Italic,
+        )
     }
 }
 

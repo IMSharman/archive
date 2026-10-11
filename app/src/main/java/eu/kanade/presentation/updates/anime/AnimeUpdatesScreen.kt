@@ -1,6 +1,8 @@
 package eu.kanade.presentation.updates.anime
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
@@ -68,10 +70,6 @@ fun AnimeUpdateScreen(
     ) { contentPadding ->
         when {
             state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-            state.items.isEmpty() -> EmptyScreen(
-                stringRes = MR.strings.information_no_recent,
-                modifier = Modifier.padding(contentPadding),
-            )
             else -> {
                 val scope = rememberCoroutineScope()
                 var isRefreshing by remember { mutableStateOf(false) }
@@ -91,19 +89,33 @@ fun AnimeUpdateScreen(
                     enabled = !state.selectionMode,
                     indicatorPadding = contentPadding,
                 ) {
-                    FastScrollLazyColumn(
-                        contentPadding = contentPadding,
-                    ) {
-                        animeUpdatesLastUpdatedItem(lastUpdated)
+                    if (state.items.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .fillMaxSize(),
+                        ) {
+                            AnimeUpdatesLastUpdatedHeader(lastUpdated = lastUpdated)
+                            EmptyScreen(
+                                stringRes = MR.strings.information_no_recent,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    } else {
+                        FastScrollLazyColumn(
+                            contentPadding = contentPadding,
+                        ) {
+                            animeUpdatesLastUpdatedItem(lastUpdated)
 
-                        animeUpdatesUiItems(
-                            uiModels = state.getUiModel(),
-                            selectionMode = state.selectionMode,
-                            onUpdateSelected = onUpdateSelected,
-                            onClickCover = onClickCover,
-                            onClickUpdate = onOpenEpisode,
-                            onDownloadEpisode = onDownloadEpisode,
-                        )
+                            animeUpdatesUiItems(
+                                uiModels = state.getUiModel(),
+                                selectionMode = state.selectionMode,
+                                onUpdateSelected = onUpdateSelected,
+                                onClickCover = onClickCover,
+                                onClickUpdate = onOpenEpisode,
+                                onDownloadEpisode = onDownloadEpisode,
+                            )
+                        }
                     }
                 }
             }

@@ -53,6 +53,7 @@ import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.entries.EditCoverAction
 import eu.kanade.tachiyomi.data.coil.useBackground
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
+import tachiyomi.source.local.entries.anime.isLocal
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.entries.anime.model.Anime
@@ -147,10 +148,16 @@ fun AnimeImagesDialog(
                                 var expanded by remember { mutableStateOf(false) }
                                 IconButton(
                                     onClick = {
-                                        if ((isCover && isCustomCover) || (!isCover && isCustomBackground)) {
-                                            expanded = true
-                                        } else {
-                                            onEditClick(EditCoverAction.EDIT)
+                                        when {
+                                            !anime.favorite && !anime.isLocal() -> {
+                                                onEditClick(EditCoverAction.ADD_TO_LIBRARY)
+                                            }
+                                            (isCover && isCustomCover) || (!isCover && isCustomBackground) -> {
+                                                expanded = true
+                                            }
+                                            else -> {
+                                                onEditClick(EditCoverAction.EDIT)
+                                            }
                                         }
                                     },
                                 ) {

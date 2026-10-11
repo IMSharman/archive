@@ -10,6 +10,27 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.5] - 2026-10-11
+
+### Added
+
+- Parallel page loading and preloading in the reader with Wi-Fi network awareness to save mobile data (ported from Mihon).
+- Local source entries are now included in Global Search for both Manga and Anime.
+- Settings search now matches and highlights setting group headings.
+- Option to "Load ahead only on Wi-Fi" added under Reader settings.
+
+### Improved
+
+- **Download Resiliency**: Index existing finished downloads found on disk instead of re-downloading them again (both Manga chapters and Anime episodes).
+- **Updates Screen**: Keep the "Last updated" timestamp header visible even when the updates list is empty.
+- **Local Sources**: Corrupted or unreadable archive files in local manga directories no longer fail listing all remaining valid chapters.
+- **Cover Customization**: Added warning prompting user to add an entry to their library before attempting to customize covers on non-library entries.
+
+### Fixed
+
+- Fixed item selection getting cleared when automatic or background refresh downloads new chapters or episodes while items were selected.
+- Cancel queued downloads for chapters or episodes that were removed from the source.
+
 ## [v1.0.4] - 2026-10-11
 
 ### Fixed

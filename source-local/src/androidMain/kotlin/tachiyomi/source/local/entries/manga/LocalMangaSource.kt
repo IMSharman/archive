@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.json.Json
@@ -270,11 +271,17 @@ actual class LocalMangaSource(
                         .toFloat()
                     chapter_number = chapterNumber
 
-                    val format = Format.valueOf(chapterFile)
-                    if (format is Format.Epub) {
-                        format.file.epubReader(context).use { epub ->
-                            epub.fillMetadata(manga, this)
+                    try {
+                        val format = Format.valueOf(chapterFile)
+                        if (format is Format.Epub) {
+                            format.file.epubReader(context).use { epub ->
+                                epub.fillMetadata(manga, this)
+                            }
                         }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        logcat(LogPriority.ERROR, e) { "Failed to read metadata for ${chapterFile.name}" }
                     }
 
                     // Overwrite data from chapters.json file

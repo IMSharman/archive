@@ -47,6 +47,7 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.entries.EditCoverAction
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
+import tachiyomi.source.local.entries.manga.isLocal
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.domain.entries.manga.model.Manga
 import tachiyomi.i18n.MR
@@ -110,10 +111,12 @@ fun MangaCoverDialog(
                                 var expanded by remember { mutableStateOf(false) }
                                 IconButton(
                                     onClick = {
-                                        if (isCustomCover) {
-                                            expanded = true
-                                        } else {
-                                            onEditClick(EditCoverAction.EDIT)
+                                        when {
+                                            !manga.favorite && !manga.isLocal() -> {
+                                                onEditClick(EditCoverAction.ADD_TO_LIBRARY)
+                                            }
+                                            isCustomCover -> expanded = true
+                                            else -> onEditClick(EditCoverAction.EDIT)
                                         }
                                     },
                                 ) {

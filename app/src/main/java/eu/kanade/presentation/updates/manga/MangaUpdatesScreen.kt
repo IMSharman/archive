@@ -1,6 +1,8 @@
 package eu.kanade.presentation.updates.manga
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.SnackbarHost
@@ -62,10 +64,6 @@ fun MangaUpdateScreen(
     ) { contentPadding ->
         when {
             state.isLoading -> LoadingScreen(Modifier.padding(contentPadding))
-            state.items.isEmpty() -> EmptyScreen(
-                stringRes = MR.strings.information_no_recent,
-                modifier = Modifier.padding(contentPadding),
-            )
             else -> {
                 val scope = rememberCoroutineScope()
                 var isRefreshing by remember { mutableStateOf(false) }
@@ -85,19 +83,33 @@ fun MangaUpdateScreen(
                     enabled = !state.selectionMode,
                     indicatorPadding = contentPadding,
                 ) {
-                    FastScrollLazyColumn(
-                        contentPadding = contentPadding,
-                    ) {
-                        mangaUpdatesLastUpdatedItem(lastUpdated)
+                    if (state.items.isEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .padding(contentPadding)
+                                .fillMaxSize(),
+                        ) {
+                            MangaUpdatesLastUpdatedHeader(lastUpdated = lastUpdated)
+                            EmptyScreen(
+                                stringRes = MR.strings.information_no_recent,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    } else {
+                        FastScrollLazyColumn(
+                            contentPadding = contentPadding,
+                        ) {
+                            mangaUpdatesLastUpdatedItem(lastUpdated)
 
-                        mangaUpdatesUiItems(
-                            uiModels = state.getUiModel(),
-                            selectionMode = state.selectionMode,
-                            onUpdateSelected = onUpdateSelected,
-                            onClickCover = onClickCover,
-                            onClickUpdate = onOpenChapter,
-                            onDownloadChapter = onDownloadChapter,
-                        )
+                            mangaUpdatesUiItems(
+                                uiModels = state.getUiModel(),
+                                selectionMode = state.selectionMode,
+                                onUpdateSelected = onUpdateSelected,
+                                onClickCover = onClickCover,
+                                onClickUpdate = onOpenChapter,
+                                onDownloadChapter = onDownloadChapter,
+                            )
+                        }
                     }
                 }
             }

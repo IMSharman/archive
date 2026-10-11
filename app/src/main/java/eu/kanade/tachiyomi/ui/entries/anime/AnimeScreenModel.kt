@@ -786,6 +786,7 @@ class AnimeScreenModel(
                 downloadManager.startDownloadNow(episodeId)
             } else {
                 downloadEpisodes(episodes, false, video)
+                toggleAllSelection(false)
             }
             if (!isFavorited && !successState.hasPromptedToAddBefore) {
                 updateSuccessState { state ->
@@ -941,7 +942,6 @@ class AnimeScreenModel(
     ) {
         val anime = successState?.anime ?: return
         downloadManager.downloadEpisodes(anime, episodes, true, alt, video)
-        toggleAllSelection(false)
     }
 
     /**

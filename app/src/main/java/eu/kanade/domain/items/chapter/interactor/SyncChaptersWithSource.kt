@@ -79,6 +79,11 @@ class SyncChaptersWithSource(
             }
         }
 
+        // The source no longer lists these, so their queued downloads could only fail
+        removedChapters.mapNotNull { downloadManager.getQueuedDownloadOrNull(it.id) }
+            .takeIf { it.isNotEmpty() }
+            ?.let(downloadManager::cancelQueuedDownloads)
+
         // Used to not set upload date of older chapters
         // to a higher value than newer chapters
         var maxSeenUploadDate = 0L
