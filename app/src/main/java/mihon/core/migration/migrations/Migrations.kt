@@ -48,5 +48,5 @@ val migrations: List<Migration>
         VideoOrientationMigration(),
         CategoryPreferencesCleanupMigration(),
         PrefLangMigration(),
-        DefaultDOHMigration(),
+        ResetDOHDefaultMigration(),
     )

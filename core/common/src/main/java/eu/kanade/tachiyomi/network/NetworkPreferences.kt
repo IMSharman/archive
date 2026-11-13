@@ -13,7 +13,7 @@ class NetworkPreferences(
     }
 
     fun dohProvider(): Preference<Int> {
-        return preferenceStore.getInt("doh_provider", PREF_DOH_CLOUDFLARE)
+        return preferenceStore.getInt("doh_provider", PREF_DOH_DISABLED)
     }
 
     fun defaultUserAgent(): Preference<String> {

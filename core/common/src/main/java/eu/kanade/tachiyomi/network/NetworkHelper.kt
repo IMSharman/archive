@@ -59,7 +59,7 @@ class NetworkHelper(
             ),
         )
 
-        val selectedDns: Dns = when (preferences.dohProvider().get()) {
+        val selectedDns: Dns? = when (preferences.dohProvider().get()) {
             PREF_DOH_CLOUDFLARE -> ResilientDns(cloudflareDns, googleDns)
             PREF_DOH_GOOGLE -> ResilientDns(googleDns, cloudflareDns)
             PREF_DOH_ADGUARD -> ResilientDns(
@@ -139,9 +139,12 @@ class NetworkHelper(
                 ),
                 googleDns,
             )
-            else -> ResilientDns(IPv4PreferredDns(okhttp3.Dns.SYSTEM), googleDns)
+            else -> null
         }
-        builder.dns(selectedDns)
+        if (selectedDns != null) {
+            builder.dns(selectedDns)
+        }
+        builder
     }
 
     val client = clientBuilder

@@ -17,7 +17,8 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - **Extension `AbstractMethodError`**: Changed all legacy parse methods in `HttpSource` (`chapterListParse`, `mangaDetailsParse`, `popularMangaParse`, `searchMangaParse`, `latestUpdatesParse`, `pageListParse`, `imageUrlParse`, `chapterPageParse`) from `abstract` to `open` with default stub implementations, resolving `AbstractMethodError` crashes when loading or refreshing modern Keiyoushi extensions (e.g. AllManga).
 - **ProGuard / R8 Extension Rules**: Kept all public and protected methods and `$DefaultImpls` for `Source`, `MangaSource`, `CatalogueSource`, and `AnimeSource` to prevent R8 from stripping or inlining interface methods called by extensions.
 - **Process Network & DNS Isolation**: Removed `VpnNetworkBinder`'s forced `bindProcessToNetwork`, which caused socket/DNS isolation and `NXDOMAIN` failures when running in Android Private Space or split-tunnel profiles while WebView worked.
-- **Resilient DNS Multi-Tier Fallback**: Added system DNS fallback to `ResilientDns` so that if DoH providers fail or return NXDOMAIN, network requests seamlessly fall back to system DNS matching WebView resolution.
+- **Resilient DNS & System DNS Default**: Reverted DNS-over-HTTPS (DoH) default back to Disabled, letting network traffic naturally use standard system DNS and active VPN resolvers without conflict, and added system DNS fallback to `ResilientDns` when custom DoH providers are used.
+- **DOH Reset Migration**: Automatically resets DoH back to Disabled on upgrade to v1.0.6 if it was previously set to Cloudflare by legacy defaults.
 
 ## [v1.0.5] - 2026-10-11
 
