@@ -343,14 +343,27 @@ class MangaLibraryUpdateJob(private val context: Context, workerParams: WorkerPa
      */
     private suspend fun updateManga(manga: Manga, fetchWindow: Pair<Long, Long>): List<Chapter> {
         val source = sourceManager.getOrStub(manga.source)
+        val shouldUpdateMetadata = libraryPreferences.autoUpdateMetadata().get()
+        val sManga = manga.toSManga()
 
-        // Update manga metadata if needed
-        if (libraryPreferences.autoUpdateMetadata().get()) {
-            val networkManga = source.getMangaDetails(manga.toSManga())
-            updateManga.awaitUpdateFromSource(manga, networkManga, manualFetch = false, coverCache)
+        val (networkManga, chapters) = try {
+            val update = source.getMangaUpdate(
+                sManga,
+                emptyList(),
+                fetchDetails = shouldUpdateMetadata,
+                fetchChapters = true,
+            )
+            Pair(if (shouldUpdateMetadata) update.manga else null, update.chapters)
+        } catch (_: UnsupportedOperationException) {
+            val details = if (shouldUpdateMetadata) source.getMangaDetails(sManga) else null
+            val chs = source.getChapterList(sManga)
+            Pair(details, chs)
         }
 
-        val chapters = source.getChapterList(manga.toSManga())
+        // Update manga metadata if needed
+        if (networkManga != null) {
+            updateManga.awaitUpdateFromSource(manga, networkManga, manualFetch = false, coverCache)
+        }
 
         // Get manga from database to account for if it was removed during the update and
         // to get latest data so it doesn't get overwritten later on

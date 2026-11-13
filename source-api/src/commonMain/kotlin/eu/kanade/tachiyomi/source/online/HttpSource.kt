@@ -12,6 +12,8 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.model.SMangaUpdate
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -22,6 +24,7 @@ import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A simple implementation for sources from a website.
@@ -204,6 +207,16 @@ abstract class HttpSource : CatalogueSource {
      */
     protected open fun latestUpdatesParse(response: Response): MangasPage = throw UnsupportedOperationException()
 
+    private val mangaMutexes = ConcurrentHashMap<String, Mutex>()
+
+    protected suspend fun <T> withMangaLock(manga: SManga, block: suspend () -> T): T {
+        val key = "$id:${manga.url}"
+        val mutex = mangaMutexes.computeIfAbsent(key) { Mutex() }
+        return mutex.withLock {
+            block()
+        }
+    }
+
     /**
      * Get the updated details for a manga.
      * Normally it's not needed to override this method.
@@ -213,10 +226,12 @@ abstract class HttpSource : CatalogueSource {
      */
     @Suppress("DEPRECATION")
     override suspend fun getMangaDetails(manga: SManga): SManga {
-        return try {
-            getMangaUpdate(manga, emptyList(), fetchDetails = true, fetchChapters = false).manga
-        } catch (_: UnsupportedOperationException) {
-            fetchMangaDetails(manga).awaitSingle()
+        return withMangaLock(manga) {
+            try {
+                getMangaUpdate(manga, emptyList(), fetchDetails = true, fetchChapters = false).manga
+            } catch (_: UnsupportedOperationException) {
+                fetchMangaDetails(manga).awaitSingle()
+            }
         }
     }
 
@@ -255,10 +270,12 @@ abstract class HttpSource : CatalogueSource {
      */
     @Suppress("DEPRECATION")
     override suspend fun getChapterList(manga: SManga): List<SChapter> {
-        return try {
-            getMangaUpdate(manga, emptyList(), fetchDetails = false, fetchChapters = true).chapters
-        } catch (_: UnsupportedOperationException) {
-            fetchChapterList(manga).awaitSingle()
+        return withMangaLock(manga) {
+            try {
+                getMangaUpdate(manga, emptyList(), fetchDetails = false, fetchChapters = true).chapters
+            } catch (_: UnsupportedOperationException) {
+                fetchChapterList(manga).awaitSingle()
+            }
         }
     }
 

@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.8] - 2026-11-13
+
+### Fixed
+
+- **Manga Refresh Concurrency (`IllegalStateException`)**: Unified metadata and chapter updates into a single coordinated `getMangaUpdate` invocation in `MangaScreenModel` and `MangaLibraryUpdateJob` (matching Anime parity), resolving `IllegalStateException: getMangaUpdate must not be called concurrently for the same manga`.
+- **Source-level Mutex Locking**: Added per-manga mutex synchronization in `HttpSource` for `getMangaDetails` and `getChapterList` so concurrent requests never overlap on the same title.
+
 ## [v1.0.7] - 2026-11-13
 
 ### Fixed
