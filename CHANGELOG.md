@@ -10,6 +10,14 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.7] - 2026-11-13
+
+### Fixed
+
+- **Keiyoushi API 1.6 `getMangaUpdate` Support**: Added `SMangaUpdate` model and implemented `getMangaUpdate` delegation in `MangaSource`, `CatalogueSource`, and `HttpSource`. Modern Keiyoushi extensions (compiled against extension-lib 1.6+, such as AllManga) that implement `getMangaUpdate` now refresh chapters and details properly instead of falling through to unimplemented stubs and throwing `UnsupportedOperationException: null`.
+- **Chapter Parsing Fallback**: Set default `chapterListParse` in `HttpSource` to return `emptyList()` rather than throwing an unhandled exception.
+- **Fail-Safe DNS Resolution**: Configured default DNS resolution to use System DNS as primary (natural VPN routing) with automatic failover to Cloudflare DoH (`1.1.1.1`) and Google DoH (`8.8.8.8`) whenever system DNS lookups fail or are blocked (such as ISP blocks returning `NXDOMAIN` or `Unable to resolve host` on `atsu.moe`).
+
 ## [v1.0.6] - 2026-11-13
 
 ### Fixed

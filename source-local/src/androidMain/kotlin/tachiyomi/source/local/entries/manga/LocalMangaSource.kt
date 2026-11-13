@@ -10,6 +10,7 @@ import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.util.lang.compareToCaseInsensitiveNaturalOrder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -379,6 +380,17 @@ actual class LocalMangaSource(
             logcat(LogPriority.ERROR, e) { "Error updating cover for ${manga.title}" }
             null
         }
+    }
+
+    override suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate {
+        val newManga = if (fetchDetails) getMangaDetails(manga) else manga
+        val newChapters = if (fetchChapters) getChapterList(manga) else chapters
+        return SMangaUpdate(newManga, newChapters)
     }
 
     companion object {

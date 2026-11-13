@@ -11,6 +11,7 @@ import eu.kanade.tachiyomi.source.model.MangasPage
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -212,7 +213,11 @@ abstract class HttpSource : CatalogueSource {
      */
     @Suppress("DEPRECATION")
     override suspend fun getMangaDetails(manga: SManga): SManga {
-        return fetchMangaDetails(manga).awaitSingle()
+        return try {
+            getMangaUpdate(manga, emptyList(), fetchDetails = true, fetchChapters = false).manga
+        } catch (_: UnsupportedOperationException) {
+            fetchMangaDetails(manga).awaitSingle()
+        }
     }
 
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getMangaDetails"))
@@ -250,7 +255,11 @@ abstract class HttpSource : CatalogueSource {
      */
     @Suppress("DEPRECATION")
     override suspend fun getChapterList(manga: SManga): List<SChapter> {
-        return fetchChapterList(manga).awaitSingle()
+        return try {
+            getMangaUpdate(manga, emptyList(), fetchDetails = false, fetchChapters = true).chapters
+        } catch (_: UnsupportedOperationException) {
+            fetchChapterList(manga).awaitSingle()
+        }
     }
 
     @Deprecated("Use the non-RxJava API instead", replaceWith = ReplaceWith("getChapterList"))
@@ -277,7 +286,7 @@ abstract class HttpSource : CatalogueSource {
      *
      * @param response the response from the site.
      */
-    protected open fun chapterListParse(response: Response): List<SChapter> = throw UnsupportedOperationException()
+    protected open fun chapterListParse(response: Response): List<SChapter> = emptyList()
 
     /**
      * Parses the response from the site and returns a SChapter Object.

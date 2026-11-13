@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.source
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
+import eu.kanade.tachiyomi.source.model.SMangaUpdate
 import eu.kanade.tachiyomi.util.awaitSingle
 import rx.Observable
 
@@ -59,6 +60,24 @@ interface MangaSource {
     @Suppress("DEPRECATION")
     suspend fun getPageList(chapter: SChapter): List<Page> {
         return fetchPageList(chapter).awaitSingle()
+    }
+
+    /**
+     * Fetches updated information for a manga.
+     *
+     * @since tachiyomix 1.6
+     * @param manga The manga to fetch updates for.
+     * @param chapters Existing chapters of the manga
+     * @param fetchDetails Whether to fetch updated manga details.
+     * @param fetchChapters Whether to fetch available chapters.
+     */
+    suspend fun getMangaUpdate(
+        manga: SManga,
+        chapters: List<SChapter>,
+        fetchDetails: Boolean,
+        fetchChapters: Boolean,
+    ): SMangaUpdate {
+        throw UnsupportedOperationException()
     }
 
     @Deprecated(
