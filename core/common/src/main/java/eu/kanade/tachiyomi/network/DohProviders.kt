@@ -36,13 +36,23 @@ class IPv4PreferredDns(private val delegate: Dns) : Dns {
 class ResilientDns(
     private val primary: Dns,
     private val fallback: Dns,
+    private val systemFallback: Dns? = IPv4PreferredDns(okhttp3.Dns.SYSTEM),
 ) : Dns {
     override fun lookup(hostname: String): List<InetAddress> {
         return try {
             val addresses = primary.lookup(hostname)
-            if (addresses.isNotEmpty()) addresses else fallback.lookup(hostname)
+            if (addresses.isNotEmpty()) addresses else fallbackLookup(hostname)
         } catch (_: Exception) {
-            fallback.lookup(hostname)
+            fallbackLookup(hostname)
+        }
+    }
+
+    private fun fallbackLookup(hostname: String): List<InetAddress> {
+        return try {
+            val addresses = fallback.lookup(hostname)
+            if (addresses.isNotEmpty()) addresses else (systemFallback?.lookup(hostname) ?: emptyList())
+        } catch (e: Exception) {
+            systemFallback?.lookup(hostname) ?: throw e
         }
     }
 }

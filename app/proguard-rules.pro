@@ -26,8 +26,8 @@
 -keep class org.brotli.** { *; }
 
 # Keep source model interfaces and classes for extensions (prevent stripping or inlining)
--keep class eu.kanade.tachiyomi.source.model.** { *; }
--keep class eu.kanade.tachiyomi.animesource.model.** { *; }
+-keep class eu.kanade.tachiyomi.source.** { public protected *; }
+-keep class eu.kanade.tachiyomi.animesource.** { public protected *; }
 
 # From extensions-lib
 -keep,allowoptimization class eu.kanade.tachiyomi.network.interceptor.RateLimitInterceptorKt { public protected *; }
