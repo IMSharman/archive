@@ -10,6 +10,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 - `Fixed` - for any bug fixes.
 - `Other` - for technical stuff.
 
+## [v1.0.9] - 2026-11-17
+
+### Added
+
+- **Built-in WebView Popup & Ad Blocker**: Added `WebViewPopupBlocker` and hardened `WebViewScreenContent` to block `window.open()` / `target="_blank"` popups, off-domain ad redirects, non-HTTP schemes, and common popunder/ad networks (while allowlisting Cloudflare, hCaptcha, and reCAPTCHA).
+- **WebView Blocker Toggle**: Added a `"Block popups & ads: ON / OFF"` toggle to the WebView `⋮` menu so blocking can be toggled on the fly.
+
 ## [v1.0.8] - 2026-11-13
 
 ### Fixed

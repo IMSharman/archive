@@ -2,7 +2,10 @@ package eu.kanade.presentation.webview
 
 import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
+import android.os.Message
+import android.webkit.JsResult
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import com.kevinnzou.web.AccompanistWebChromeClient
 import com.kevinnzou.web.AccompanistWebViewClient
 import com.kevinnzou.web.LoadingState
 import com.kevinnzou.web.WebView
@@ -63,6 +68,51 @@ fun WebViewScreenContent(
 
     var currentUrl by remember { mutableStateOf(url) }
     var showCloudflareHelp by remember { mutableStateOf(false) }
+    var blockPopupsAndAds by remember { mutableStateOf(true) }
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
+
+    val chromeClient = remember {
+        object : AccompanistWebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView?,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: Message?,
+            ): Boolean {
+                if (blockPopupsAndAds) {
+                    if (isUserGesture && view != null) {
+                        val hitTest = view.hitTestResult
+                        val targetUrl = hitTest.extra
+                        val isAnchor = hitTest.type == WebView.HitTestResult.SRC_ANCHOR_TYPE ||
+                            hitTest.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE
+                        if (
+                            isAnchor &&
+                            !targetUrl.isNullOrBlank() &&
+                            WebViewPopupBlocker.isSameBaseDomain(view.url, targetUrl) &&
+                            !WebViewPopupBlocker.isAdOrPopupUrl(targetUrl.toUri(), view.url)
+                        ) {
+                            view.loadUrl(targetUrl, headers)
+                        }
+                    }
+                    return false
+                }
+                return super.onCreateWindow(view, isDialog, isUserGesture, resultMsg)
+            }
+
+            override fun onJsBeforeUnload(
+                view: WebView?,
+                url: String?,
+                message: String?,
+                result: JsResult?,
+            ): Boolean {
+                if (blockPopupsAndAds) {
+                    result?.confirm()
+                    return true
+                }
+                return super.onJsBeforeUnload(view, url, message, result)
+            }
+        }
+    }
 
     val webClient = remember {
         object : AccompanistWebViewClient() {
@@ -94,23 +144,45 @@ fun WebViewScreenContent(
                 }
             }
 
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?,
+            ): WebResourceResponse? {
+                if (blockPopupsAndAds && request != null) {
+                    val pageUrl = request.requestHeaders["Referer"] ?: currentUrl
+                    if (WebViewPopupBlocker.isAdOrPopupUrl(request.url, pageUrl)) {
+                        return WebViewPopupBlocker.emptyResponse()
+                    }
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
             override fun shouldOverrideUrlLoading(
                 view: WebView?,
                 request: WebResourceRequest?,
             ): Boolean {
                 request?.let {
+                    val urlString = it.url.toString()
                     // Don't attempt to open blobs as webpages
-                    if (it.url.toString().startsWith("blob:http")) {
+                    if (urlString.startsWith("blob:http")) {
                         return false
                     }
 
-                    // Ignore intents urls
-                    if (it.url.toString().startsWith("intent://")) {
+                    // Block non-http/https schemes (intent://, market://, tel:, mailto:, etc.)
+                    val scheme = it.url.scheme?.lowercase()
+                    if (scheme != "http" && scheme != "https") {
+                        return true
+                    }
+
+                    // Block navigations/redirects to known ad & popup domains
+                    if (blockPopupsAndAds && WebViewPopupBlocker.isAdOrPopupUrl(it.url, currentUrl)) {
                         return true
                     }
 
                     // Continue with request, but with custom headers
-                    view?.loadUrl(it.url.toString(), headers)
+                    if (it.isForMainFrame) {
+                        view?.loadUrl(urlString, headers)
+                    }
                 }
                 return super.shouldOverrideUrlLoading(view, request)
             }
@@ -152,6 +224,21 @@ fun WebViewScreenContent(
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_webview_refresh),
                                         onClick = { navigator.reload() },
+                                    ),
+                                    AppBar.OverflowAction(
+                                        title = if (blockPopupsAndAds) {
+                                            "Block popups & ads: ON"
+                                        } else {
+                                            "Block popups & ads: OFF"
+                                        },
+                                        onClick = {
+                                            blockPopupsAndAds = !blockPopupsAndAds
+                                            webViewRef?.settings?.apply {
+                                                javaScriptCanOpenWindowsAutomatically = !blockPopupsAndAds
+                                                setSupportMultipleWindows(blockPopupsAndAds)
+                                            }
+                                            navigator.reload()
+                                        },
                                     ),
                                     AppBar.OverflowAction(
                                         title = stringResource(MR.strings.action_share),
@@ -211,7 +298,10 @@ fun WebViewScreenContent(
                 .padding(contentPadding),
             navigator = navigator,
             onCreated = { webView ->
+                webViewRef = webView
                 webView.setDefaultSettings()
+                webView.settings.javaScriptCanOpenWindowsAutomatically = !blockPopupsAndAds
+                webView.settings.setSupportMultipleWindows(blockPopupsAndAds)
 
                 // Debug mode (chrome://inspect/#devices)
                 if (BuildConfig.DEBUG &&
@@ -225,6 +315,7 @@ fun WebViewScreenContent(
                 }
             },
             client = webClient,
+            chromeClient = chromeClient,
         )
     }
 }
