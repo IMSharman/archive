@@ -6,6 +6,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import eu.kanade.presentation.more.stats.StatsScreenState
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.util.system.openInBrowser
 import eu.kanade.tachiyomi.util.system.toShareIntent
@@ -23,6 +24,7 @@ class WebViewScreenModel(
     private val MangaSourceManager: MangaSourceManager = Injekt.get(),
     private val AnimeSourceManager: AnimeSourceManager = Injekt.get(),
     private val network: NetworkHelper = Injekt.get(),
+    val networkPreferences: NetworkPreferences = Injekt.get(),
 ) : StateScreenModel<StatsScreenState>(StatsScreenState.Loading) {
 
     var headers = emptyMap<String, String>()

@@ -47,13 +47,13 @@ import eu.kanade.presentation.components.AppBarActions
 import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.entries.EditCoverAction
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
-import tachiyomi.source.local.entries.manga.isLocal
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.domain.entries.manga.model.Manga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
+import tachiyomi.source.local.entries.manga.isLocal
 
 @Composable
 fun MangaCoverDialog(

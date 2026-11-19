@@ -86,7 +86,8 @@ object VpnNetworkBinder {
                 caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true &&
                     caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             } ?: connectivityManager.allNetworks.firstOrNull { network ->
-                connectivityManager.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
+                connectivityManager.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) ==
+                    true
             }
 
             if (activeVpn != null) {

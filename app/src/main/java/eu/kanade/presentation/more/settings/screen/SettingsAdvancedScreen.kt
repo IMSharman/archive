@@ -257,6 +257,11 @@ object SettingsAdvancedScreen : SearchableSettings {
                         }
                     },
                 ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = networkPreferences.blockWebViewPopupsAndAds(),
+                    title = stringResource(MR.strings.pref_block_webview_popups_ads),
+                    subtitle = stringResource(MR.strings.pref_block_webview_popups_ads_summary),
+                ),
                 Preference.PreferenceItem.ListPreference(
                     preference = networkPreferences.dohProvider(),
                     entries = persistentMapOf(

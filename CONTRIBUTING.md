@@ -1,50 +1,48 @@
-Looking to report an issue/bug or make a feature request? Please refer to the [README file](https://github.com/aniyomiorg/aniyomi#issues-feature-requests-and-contributing).
+Looking to report a bug or suggest a feature? Please use the [issue tracker](https://github.com/IMSharman/archive/issues) or check the [README](https://github.com/IMSharman/archive#readme).
 
 ---
 
-Thanks for your interest in contributing to Aniyomi!
+Thanks for your interest in contributing to **Archive**!
 
-
-# Code contributions
+# Code Contributions
 
 Pull requests are welcome!
 
-If you're interested in taking on [an open issue](https://github.com/aniyomiorg/aniyomi/issues), please comment on it so others are aware.
-You do not need to ask for permission nor an assignment.
+If you're interested in taking on [an open issue](https://github.com/IMSharman/archive/issues), please comment on it so others are aware. You do not need to ask for permission or assignment.
 
 ## Prerequisites
 
-Before you start, please note that the ability to use following technologies is **required** and that existing contributors will not actively teach them to you.
+Before starting, familiarity with the following technologies is expected:
 
-- Basic [Android development](https://developer.android.com/)
+- [Android development](https://developer.android.com/) (Jetpack Compose, Kotlin Coroutines, Gradle)
 - [Kotlin](https://kotlinlang.org/)
 
 ### Tools
 
 - [Android Studio](https://developer.android.com/studio)
-- Emulator or phone with developer options enabled to test changes.
+- JDK 17
+- An emulator or physical Android device (Android 8.0+) for testing changes
 
-## Getting help
+### Local Verification
 
-- Join [the Discord server](https://discord.gg/F32UjdJZrR) for online help and to ask questions while developing.
+Before opening a pull request, please verify formatting, builds, and unit tests:
 
-# Translations
-
-Translations are done externally via Weblate. See [our website](https://aniyomi.org/docs/contribute#translation) for more details.
-
+```bash
+./gradlew spotlessCheck
+./gradlew testReleaseUnitTest
+./gradlew assembleDebug
+```
 
 # Forks
 
-Forks are allowed so long as they abide by [the project's LICENSE](https://github.com/aniyomiorg/aniyomi/blob/main/LICENSE).
+Forks are allowed so long as they abide by [the project's LICENSE](https://github.com/IMSharman/archive/blob/main/LICENSE).
 
 When creating a fork, remember to:
 
-- To avoid confusion with the main app:
-    - Change the app name
-    - Change the app icon
-    - Change or disable the [app update checker](https://github.com/aniyomiorg/aniyomi/blob/main/app/src/main/java/eu/kanade/tachiyomi/data/updater/AppUpdateChecker.kt)
-- To avoid installation conflicts:
-    - Change the `applicationId` in [`build.gradle.kts`](https://github.com/aniyomiorg/aniyomi/blob/main/app/build.gradle.kts)
-- To avoid having your data polluting the main app's analytics and crash report services:
-    - If you want to use Firebase analytics, replace [`google-services.json`](https://github.com/aniyomiorg/aniyomi/blob/main/app/src/standard/google-services.json) with your own
-    - If you want to use ACRA crash reporting, replace the `ACRA_URI` endpoint in [`build.gradle.kts`](https://github.com/aniyomiorg/aniyomi/blob/main/app/build.gradle.kts) with your own
+- Avoid confusion with the main app:
+    - Change the app name and app icon
+    - Change or disable the [app update checker](https://github.com/IMSharman/archive/blob/main/app/src/main/java/eu/kanade/tachiyomi/data/updater/AppUpdateChecker.kt)
+- Avoid installation conflicts:
+    - Change the `applicationId` in [`app/build.gradle.kts`](https://github.com/IMSharman/archive/blob/main/app/build.gradle.kts)
+- Avoid sending telemetry to another project's services:
+    - Replace [`google-services.json`](https://github.com/IMSharman/archive/blob/main/app/src/standard/google-services.json) or ACRA config if you enable analytics or crash reporting

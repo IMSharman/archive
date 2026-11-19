@@ -4,13 +4,13 @@ on:
     paths:
       - '**'
       - '!**.md'
-      - '!i18n/src/commonMain/moko-resources/**/strings-aniyomi.xml'
+      - '!i18n-aniyomi/src/commonMain/moko-resources/**/strings.xml'
       - '!i18n/src/commonMain/moko-resources/**/strings.xml'
-      - '!i18n/src/commonMain/moko-resources/**/plurals-aniyomi.xml'
+      - '!i18n-aniyomi/src/commonMain/moko-resources/**/plurals.xml'
       - '!i18n/src/commonMain/moko-resources/**/plurals.xml'
-      - 'i18n/src/commonMain/moko-resources/base/strings-aniyomi.xml'
+      - 'i18n-aniyomi/src/commonMain/moko-resources/base/strings.xml'
       - 'i18n/src/commonMain/moko-resources/base/strings.xml'
-      - 'i18n/src/commonMain/moko-resources/base/plurals-aniyomi.xml'
+      - 'i18n-aniyomi/src/commonMain/moko-resources/base/plurals.xml'
       - 'i18n/src/commonMain/moko-resources/base/plurals.xml'
 
 
@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: arm64-v8a-${{ github.sha }}
-          path: app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-arm64-v8a-release*.apk
 
       - name: Upload mapping
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -2,7 +2,8 @@ package eu.kanade.presentation.webview
 
 import android.net.Uri
 import android.webkit.WebResourceResponse
-import androidx.core.net.toUri
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.ByteArrayInputStream
 
 internal object WebViewPopupBlocker {
@@ -147,7 +148,13 @@ internal object WebViewPopupBlocker {
 
     fun isAdOrPopupUrl(uri: Uri?, currentPageUrl: String? = null): Boolean {
         if (uri == null) return false
-        val host = uri.host?.lowercase()?.trimEnd('.') ?: return false
+        return isAdOrPopupUrl(uri.toString(), currentPageUrl)
+    }
+
+    fun isAdOrPopupUrl(url: String?, currentPageUrl: String? = null): Boolean {
+        if (url.isNullOrBlank()) return false
+        val httpUrl = url.toHttpUrlOrNull() ?: return false
+        val host = httpUrl.host.lowercase().trimEnd('.')
         if (host.isEmpty()) return false
 
         // Never block Cloudflare challenges, captchas, or core Google static assets
@@ -161,9 +168,9 @@ internal object WebViewPopupBlocker {
         }
 
         // For third-party requests, also block common popunder script paths
-        val pageHost = currentPageUrl?.runCatching { toUri().host }?.getOrNull()
-        if (pageHost != null && !isSameBaseDomainHost(pageHost, host)) {
-            val pathAndQuery = (uri.encodedPath.orEmpty() + "?" + uri.encodedQuery.orEmpty()).lowercase()
+        val pageHttpUrl = currentPageUrl?.toHttpUrlOrNull()
+        if (pageHttpUrl != null && !isSameBaseDomain(pageHttpUrl, httpUrl)) {
+            val pathAndQuery = (httpUrl.encodedPath + "?" + httpUrl.encodedQuery.orEmpty()).lowercase()
             if (THIRD_PARTY_POPUP_PATH_PATTERNS.any { it in pathAndQuery }) {
                 return true
             }
@@ -172,16 +179,32 @@ internal object WebViewPopupBlocker {
         return false
     }
 
+    private val SECOND_LEVEL_PUBLIC_SUFFIXES = setOf(
+        "ac",
+        "biz",
+        "co",
+        "com",
+        "edu",
+        "gen",
+        "gob",
+        "gov",
+        "info",
+        "ne",
+        "net",
+        "or",
+        "org",
+    )
+
     fun isSameBaseDomain(url1: String?, url2: String?): Boolean {
         if (url1.isNullOrBlank() || url2.isNullOrBlank()) return false
-        val host1 = runCatching { url1.toUri().host }.getOrNull() ?: return false
-        val host2 = runCatching { url2.toUri().host }.getOrNull() ?: return false
-        return isSameBaseDomainHost(host1, host2)
+        val httpUrl1 = url1.toHttpUrlOrNull() ?: return false
+        val httpUrl2 = url2.toHttpUrlOrNull() ?: return false
+        return isSameBaseDomain(httpUrl1, httpUrl2)
     }
 
-    private fun isSameBaseDomainHost(host1: String, host2: String): Boolean {
-        val clean1 = host1.lowercase().trimEnd('.')
-        val clean2 = host2.lowercase().trimEnd('.')
+    private fun isSameBaseDomain(url1: HttpUrl, url2: HttpUrl): Boolean {
+        val clean1 = url1.host.lowercase().trimEnd('.')
+        val clean2 = url2.host.lowercase().trimEnd('.')
         if (clean1 == clean2) return true
         if (clean1.endsWith(".$clean2") || clean2.endsWith(".$clean1")) return true
         val base1 = extractBaseDomain(clean1)
@@ -191,10 +214,15 @@ internal object WebViewPopupBlocker {
 
     private fun extractBaseDomain(host: String): String {
         val parts = host.split('.')
-        return if (parts.size >= 2) {
-            "${parts[parts.size - 2]}.${parts[parts.size - 1]}"
+        if (parts.size < 2) return host
+        val isIpv4 = parts.size == 4 && parts.all { part -> part.toIntOrNull() in 0..255 }
+        if (isIpv4) return host
+        val tld = parts.last()
+        val sld = parts[parts.size - 2]
+        return if (parts.size >= 3 && tld.length == 2 && sld in SECOND_LEVEL_PUBLIC_SUFFIXES) {
+            "${parts[parts.size - 3]}.$sld.$tld"
         } else {
-            host
+            "$sld.$tld"
         }
     }
 

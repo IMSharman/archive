@@ -170,7 +170,11 @@ abstract class HttpSource : CatalogueSource {
      * @param query the search query.
      * @param filters the list of filters to apply.
      */
-    protected open fun searchMangaRequest(page: Int, query: String, filters: FilterList): Request = throw UnsupportedOperationException()
+    protected open fun searchMangaRequest(
+        page: Int,
+        query: String,
+        filters: FilterList,
+    ): Request = throw UnsupportedOperationException()
 
     /**
      * Parses the response from the site and returns a [MangasPage] object.

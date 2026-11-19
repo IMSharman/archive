@@ -21,10 +21,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +62,8 @@ fun WebViewScreenContent(
     onClearCookies: (String) -> Unit,
     headers: Map<String, String> = emptyMap(),
     onUrlChange: (String) -> Unit = {},
+    blockPopupsAndAds: Boolean = true,
+    onToggleBlockPopupsAndAds: (Boolean) -> Unit = {},
 ) {
     val state = rememberWebViewState(url = url, additionalHttpHeaders = headers)
     val navigator = rememberWebViewNavigator()
@@ -68,8 +72,15 @@ fun WebViewScreenContent(
 
     var currentUrl by remember { mutableStateOf(url) }
     var showCloudflareHelp by remember { mutableStateOf(false) }
-    var blockPopupsAndAds by remember { mutableStateOf(true) }
+    val currentBlockPopupsAndAds by rememberUpdatedState(blockPopupsAndAds)
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
+
+    LaunchedEffect(webViewRef, blockPopupsAndAds) {
+        webViewRef?.settings?.apply {
+            javaScriptCanOpenWindowsAutomatically = !blockPopupsAndAds
+            setSupportMultipleWindows(blockPopupsAndAds)
+        }
+    }
 
     val chromeClient = remember {
         object : AccompanistWebChromeClient() {
@@ -79,7 +90,7 @@ fun WebViewScreenContent(
                 isUserGesture: Boolean,
                 resultMsg: Message?,
             ): Boolean {
-                if (blockPopupsAndAds) {
+                if (currentBlockPopupsAndAds) {
                     if (isUserGesture && view != null) {
                         val hitTest = view.hitTestResult
                         val targetUrl = hitTest.extra
@@ -105,7 +116,7 @@ fun WebViewScreenContent(
                 message: String?,
                 result: JsResult?,
             ): Boolean {
-                if (blockPopupsAndAds) {
+                if (currentBlockPopupsAndAds) {
                     result?.confirm()
                     return true
                 }
@@ -148,7 +159,7 @@ fun WebViewScreenContent(
                 view: WebView?,
                 request: WebResourceRequest?,
             ): WebResourceResponse? {
-                if (blockPopupsAndAds && request != null) {
+                if (currentBlockPopupsAndAds && request != null) {
                     val pageUrl = request.requestHeaders["Referer"] ?: currentUrl
                     if (WebViewPopupBlocker.isAdOrPopupUrl(request.url, pageUrl)) {
                         return WebViewPopupBlocker.emptyResponse()
@@ -175,7 +186,7 @@ fun WebViewScreenContent(
                     }
 
                     // Block navigations/redirects to known ad & popup domains
-                    if (blockPopupsAndAds && WebViewPopupBlocker.isAdOrPopupUrl(it.url, currentUrl)) {
+                    if (currentBlockPopupsAndAds && WebViewPopupBlocker.isAdOrPopupUrl(it.url, currentUrl)) {
                         return true
                     }
 
@@ -226,16 +237,19 @@ fun WebViewScreenContent(
                                         onClick = { navigator.reload() },
                                     ),
                                     AppBar.OverflowAction(
-                                        title = if (blockPopupsAndAds) {
-                                            "Block popups & ads: ON"
-                                        } else {
-                                            "Block popups & ads: OFF"
-                                        },
+                                        title = stringResource(
+                                            if (blockPopupsAndAds) {
+                                                MR.strings.action_webview_block_popups_ads_on
+                                            } else {
+                                                MR.strings.action_webview_block_popups_ads_off
+                                            },
+                                        ),
                                         onClick = {
-                                            blockPopupsAndAds = !blockPopupsAndAds
+                                            val newValue = !blockPopupsAndAds
+                                            onToggleBlockPopupsAndAds(newValue)
                                             webViewRef?.settings?.apply {
-                                                javaScriptCanOpenWindowsAutomatically = !blockPopupsAndAds
-                                                setSupportMultipleWindows(blockPopupsAndAds)
+                                                javaScriptCanOpenWindowsAutomatically = !newValue
+                                                setSupportMultipleWindows(newValue)
                                             }
                                             navigator.reload()
                                         },

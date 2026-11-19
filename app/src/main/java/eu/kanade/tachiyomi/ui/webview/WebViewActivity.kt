@@ -7,11 +7,13 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import androidx.compose.runtime.getValue
 import androidx.core.net.toUri
 import eu.kanade.presentation.webview.WebViewScreenContent
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.animesource.online.AnimeHttpSource
 import eu.kanade.tachiyomi.network.NetworkHelper
+import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.source.online.HttpSource
 import eu.kanade.tachiyomi.ui.base.activity.BaseActivity
 import eu.kanade.tachiyomi.util.system.WebViewUtil
@@ -25,6 +27,7 @@ import tachiyomi.core.common.util.system.logcat
 import tachiyomi.domain.source.anime.service.AnimeSourceManager
 import tachiyomi.domain.source.manga.service.MangaSourceManager
 import tachiyomi.i18n.MR
+import tachiyomi.presentation.core.util.collectAsState
 import uy.kohesive.injekt.injectLazy
 
 class WebViewActivity : BaseActivity() {
@@ -32,6 +35,7 @@ class WebViewActivity : BaseActivity() {
     private val sourceManager: MangaSourceManager by injectLazy()
     private val animeSourceManager: AnimeSourceManager by injectLazy()
     private val network: NetworkHelper by injectLazy()
+    private val networkPreferences: NetworkPreferences by injectLazy()
 
     private var assistUrl: String? = null
 
@@ -77,6 +81,9 @@ class WebViewActivity : BaseActivity() {
         }
 
         setComposeContent {
+            val blockPopupsAndAdsPref = networkPreferences.blockWebViewPopupsAndAds()
+            val blockPopupsAndAds by blockPopupsAndAdsPref.collectAsState()
+
             WebViewScreenContent(
                 onNavigateUp = { finish() },
                 initialTitle = intent.extras?.getString(TITLE_KEY),
@@ -86,6 +93,8 @@ class WebViewActivity : BaseActivity() {
                 onShare = this::shareWebpage,
                 onOpenInBrowser = this::openInBrowser,
                 onClearCookies = this::clearCookies,
+                blockPopupsAndAds = blockPopupsAndAds,
+                onToggleBlockPopupsAndAds = { blockPopupsAndAdsPref.set(it) },
             )
         }
     }

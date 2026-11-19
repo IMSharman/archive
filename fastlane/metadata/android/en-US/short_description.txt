@@ -1,1 +1,1 @@
-Full-featured player and reader, based on Mihon.
+Full-featured anime player and manga reader for Android.

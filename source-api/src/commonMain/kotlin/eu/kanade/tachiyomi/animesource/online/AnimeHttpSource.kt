@@ -15,6 +15,8 @@ import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.network.awaitSuccess
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -25,6 +27,7 @@ import uy.kohesive.injekt.injectLazy
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A simple implementation for sources from a website.
@@ -246,9 +249,21 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
     )
     protected open fun latestUpdatesParse(response: Response): AnimesPage = throw UnsupportedOperationException()
 
+    private val animeMutexes = ConcurrentHashMap<String, Mutex>()
+
+    protected suspend fun <T> withAnimeLock(anime: SAnime, block: suspend () -> T): T {
+        val key = "$id:${anime.url}"
+        val mutex = animeMutexes.computeIfAbsent(key) { Mutex() }
+        return mutex.withLock {
+            block()
+        }
+    }
+
     @Suppress("DEPRECATION")
     override suspend fun getAnimeDetails(anime: SAnime): SAnime {
-        return fetchAnimeDetails(anime).awaitSingle()
+        return withAnimeLock(anime) {
+            fetchAnimeDetails(anime).awaitSingle()
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -295,7 +310,9 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
      */
     @Suppress("DEPRECATION")
     override suspend fun getEpisodeList(anime: SAnime): List<SEpisode> {
-        return fetchEpisodeList(anime).awaitSingle()
+        return withAnimeLock(anime) {
+            fetchEpisodeList(anime).awaitSingle()
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -331,7 +348,7 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         message = "The helper functions are inherently limiting and hides the underlying implementation. " +
             "Source developers should make their own implementation according to their needs.",
     )
-    protected open fun episodeListParse(response: Response): List<SEpisode> = throw UnsupportedOperationException()
+    protected open fun episodeListParse(response: Response): List<SEpisode> = emptyList()
 
     /**
      * Parses the response from the site and returns a SEpisode Object.
@@ -358,11 +375,13 @@ abstract class AnimeHttpSource : AnimeCatalogueSource {
         ReplaceWith("getAnimeSeasonUpdate"),
     )
     override suspend fun getSeasonList(anime: SAnime): List<SAnime> {
-        return client.newCall(seasonListRequest(anime))
-            .awaitSuccess()
-            .let { response ->
-                seasonListParse(response)
-            }
+        return withAnimeLock(anime) {
+            client.newCall(seasonListRequest(anime))
+                .awaitSuccess()
+                .let { response ->
+                    seasonListParse(response)
+                }
+        }
     }
 
     /**

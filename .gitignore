@@ -12,6 +12,9 @@ release-artifacts
 
 # Configuration files
 local.properties
+keystore.properties
+*.jks
+*.keystore
 
 # macOS specific files
 .DS_Store

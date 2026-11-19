@@ -161,6 +161,8 @@
     <string name="action_webview_back">Back</string>
     <string name="action_webview_forward">Forward</string>
     <string name="action_webview_refresh">Refresh</string>
+    <string name="action_webview_block_popups_ads_on">Block popups &amp; ads: ON</string>
+    <string name="action_webview_block_popups_ads_off">Block popups &amp; ads: OFF</string>
     <string name="action_start_downloading_now">Start downloading now</string>
     <string name="action_not_now">Not now</string>
     <string name="action_add_anyway">Add anyway</string>
@@ -600,6 +602,8 @@
       <!-- Advanced section -->
     <string name="label_network">Networking</string>
     <string name="pref_clear_cookies">Clear cookies</string>
+    <string name="pref_block_webview_popups_ads">Block WebView popups &amp; ads</string>
+    <string name="pref_block_webview_popups_ads_summary">Block ad networks, popunders, and non-HTTP redirects in the built-in WebView</string>
     <string name="pref_dns_over_https">DNS over HTTPS (DoH)</string>
     <string name="pref_user_agent_string">Default user agent string</string>
     <string name="error_user_agent_string_blank">User agent string can not be blank</string>

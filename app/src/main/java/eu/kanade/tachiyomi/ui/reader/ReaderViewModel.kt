@@ -30,8 +30,6 @@ import eu.kanade.tachiyomi.ui.reader.loader.DownloadPageLoader
 import eu.kanade.tachiyomi.ui.reader.loader.HttpPageLoader
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
-import eu.kanade.tachiyomi.util.system.activeNetworkState
-import kotlinx.coroutines.Job
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderOrientation
@@ -45,8 +43,10 @@ import eu.kanade.tachiyomi.util.lang.byteSize
 import eu.kanade.tachiyomi.util.lang.takeBytes
 import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
+import eu.kanade.tachiyomi.util.system.activeNetworkState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

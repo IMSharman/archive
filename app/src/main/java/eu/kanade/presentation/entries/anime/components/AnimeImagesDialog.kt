@@ -53,7 +53,6 @@ import eu.kanade.presentation.components.DropdownMenu
 import eu.kanade.presentation.entries.EditCoverAction
 import eu.kanade.tachiyomi.data.coil.useBackground
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
-import tachiyomi.source.local.entries.anime.isLocal
 import kotlinx.collections.immutable.persistentListOf
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.entries.anime.model.Anime
@@ -62,6 +61,7 @@ import tachiyomi.i18n.aniyomi.AYMR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource
 import tachiyomi.presentation.core.util.clickableNoIndication
+import tachiyomi.source.local.entries.anime.isLocal
 
 @Composable
 fun AnimeImagesDialog(

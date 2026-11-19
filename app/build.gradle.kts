@@ -2,6 +2,8 @@ import mihon.buildlogic.Config
 import mihon.buildlogic.getBuildTime
 import mihon.buildlogic.getCommitCount
 import mihon.buildlogic.getGitSha
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("mihon.android.application")
@@ -19,8 +21,8 @@ android {
     defaultConfig {
         applicationId = "imsharman.archive"
 
-        versionCode = 141
-        versionName = "1.0.9"
+        versionCode = 142
+        versionName = "1.0.10"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -42,6 +44,33 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        val keystoreFile = rootProject.file("keystore.properties")
+        val keystoreProps = Properties().apply {
+            if (keystoreFile.exists()) {
+                FileInputStream(keystoreFile).use(::load)
+            }
+        }
+        val storePath = keystoreProps.getProperty("storeFile") ?: System.getenv("SIGNING_KEY_PATH")
+        val storePasswordValue = keystoreProps.getProperty("storePassword") ?: System.getenv("KEY_STORE_PASSWORD")
+        val keyAliasValue = keystoreProps.getProperty("keyAlias") ?: System.getenv("ALIAS")
+        val keyPasswordValue = keystoreProps.getProperty("keyPassword") ?: System.getenv("KEY_PASSWORD")
+
+        if (
+            !storePath.isNullOrBlank() &&
+            !storePasswordValue.isNullOrBlank() &&
+            !keyAliasValue.isNullOrBlank() &&
+            !keyPasswordValue.isNullOrBlank()
+        ) {
+            create("release") {
+                storeFile = rootProject.file(storePath)
+                storePassword = storePasswordValue
+                keyAlias = keyAliasValue
+                keyPassword = keyPasswordValue
+            }
+        }
+    }
+
     buildTypes {
         val debug by getting {
             applicationIdSuffix = ".dev"
@@ -54,7 +83,7 @@ android {
 
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
 
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }
