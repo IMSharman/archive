@@ -105,7 +105,7 @@ jobs:
             fi
 
             verify_out="$("$apksigner_bin" verify --print-certs "$apk")"
-            actual_sha256="$(printf '%s\n' "$verify_out" | sed -n '/^Signer .*certificate SHA-256 digest:/s/.*certificate SHA-256 digest:[[:space:]]*//p' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+            actual_sha256="$(printf '%s\n' "$verify_out" | grep -v -i "Source Stamp" | sed -n 's/.*certificate SHA-256 digest:[[:space:]]*//p' | head -n 1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
 
             if [ "$actual_sha256" != "$EXPECTED_CERT_SHA256" ]; then
               printf '%s\n' "$verify_out"
