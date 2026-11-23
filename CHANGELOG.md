@@ -12,6 +12,13 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 
 ## [v1.0.10] - 2026-11-19
 
+> **Important (One-Time Reinstall Required):** Starting with `v1.0.10`, Archive releases are signed with a dedicated release keystore instead of a local debug key. If you are updating from `v1.0.9` or earlier, Android will report *"App not installed"* until you perform a one-time reinstall:
+> 1. In Archive, go to **More → Data and storage → Create backup**.
+> 2. Uninstall your existing Archive app (`v1.0.9` or earlier).
+> 3. Install `v1.0.10` and restore your backup.
+>
+> All future updates from `v1.0.10` onward will install seamlessly in place.
+
 ### Added
 
 - **Persisted WebView Blocker Preference & Settings Toggle**: Persisted the WebView popup & ad blocker toggle in `NetworkPreferences` (`blockWebViewPopupsAndAds`), localized its menu labels, and exposed it under **Settings → Advanced → Networking**.
@@ -21,7 +28,7 @@ The format is a modified version of [Keep a Changelog](https://keepachangelog.co
 
 - **WebView Multi-part TLD Detection**: Updated `WebViewPopupBlocker` domain matching to handle multi-part public suffixes (such as `.co.uk` and `.com.au`) and IPv4 hosts accurately without external I/O.
 - **Anime Source Concurrency & Fallbacks**: Added per-anime `Mutex` locking (`withAnimeLock`) and an empty-list default fallback for `episodeListParse` in `AnimeHttpSource` for parity with `HttpSource`.
-- **Archive Branding & Release CI**: Updated repository documentation, issue templates, Fastlane metadata, and GitHub Actions workflows for `IMSharman/archive` releases and optional release keystore signing.
+- **Archive Branding & Release CI**: Updated repository documentation, issue templates, Fastlane metadata, and GitHub Actions workflows for `IMSharman/archive` releases with dedicated release keystore signing, APK signature verification, and automated changelog release notes.
 
 ## [v1.0.9] - 2026-11-17
 
