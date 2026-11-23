@@ -83,7 +83,16 @@ android {
 
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
 
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            val requireReleaseSigning = System.getenv("REQUIRE_RELEASE_SIGNING") == "true"
+            signingConfig = signingConfigs.findByName("release")
+                ?: if (requireReleaseSigning) {
+                    throw GradleException(
+                        "Release signing is required (REQUIRE_RELEASE_SIGNING=true), " +
+                            "but no release signing config was provided.",
+                    )
+                } else {
+                    signingConfigs.getByName("debug")
+                }
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
         }

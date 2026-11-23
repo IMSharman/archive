@@ -32,11 +32,87 @@ jobs:
       - name: Set up gradle
         uses: gradle/actions/setup-gradle@94baf225fe0a508e581a564467443d0e2379123b # v4.3.0
 
+      - name: Prepare release signing
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive'
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          missing=()
+          [ -z "$SIGNING_KEY" ] && missing+=("SIGNING_KEY")
+          [ -z "$ALIAS" ] && missing+=("ALIAS")
+          [ -z "$KEY_STORE_PASSWORD" ] && missing+=("KEY_STORE_PASSWORD")
+          [ -z "$KEY_PASSWORD" ] && missing+=("KEY_PASSWORD")
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required GitHub Actions secrets for release signing: ${missing[*]}. Configure them in Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+          keystore_path="$RUNNER_TEMP/release.keystore"
+          printf '%s' "$SIGNING_KEY" | tr -d '[:space:]' | base64 --decode > "$keystore_path"
+
+          cert_info="$(keytool -list -v -keystore "$keystore_path" -storepass "$KEY_STORE_PASSWORD" -alias "$ALIAS")"
+          expected_sha256="$(printf '%s\n' "$cert_info" | sed -n 's/^[[:space:]]*SHA256:[[:space:]]*//p' | head -n 1 | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+
+          if [ -z "$expected_sha256" ]; then
+            echo "::error::Failed to read SHA-256 certificate fingerprint for alias '$ALIAS' from SIGNING_KEY."
+            exit 1
+          fi
+
+          echo "Verified keystore alias '$ALIAS' (SHA-256: $expected_sha256)"
+          echo "VERSION_TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+          echo "SIGNING_KEY_PATH=$keystore_path" >> "$GITHUB_ENV"
+          echo "EXPECTED_CERT_SHA256=$expected_sha256" >> "$GITHUB_ENV"
+
       - name: Check code format
         run: ./gradlew spotlessCheck
 
       - name: Build app
+        env:
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          REQUIRE_RELEASE_SIGNING: ${{ startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive' }}
         run: ./gradlew assembleRelease -Penable-updater
+
+      - name: Clean up signing keystore
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/release.keystore"
+          echo "SIGNING_KEY_PATH=" >> "$GITHUB_ENV"
+
+      - name: Verify release APK signatures
+        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive'
+        run: |
+          set -euo pipefail
+
+          apksigner_bin="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -maxdepth 2 -name apksigner -type f | sort -V | tail -n 1)"
+          if [ -z "$apksigner_bin" ]; then
+            echo "::error::apksigner not found under Android SDK build-tools."
+            exit 1
+          fi
+
+          for abi in universal arm64-v8a armeabi-v7a x86 x86_64; do
+            apk="app/build/outputs/apk/release/app-${abi}-release.apk"
+            if [ ! -f "$apk" ]; then
+              echo "::error::Expected APK not found: $apk"
+              exit 1
+            fi
+
+            verify_out="$("$apksigner_bin" verify --print-certs "$apk")"
+            actual_sha256="$(printf '%s\n' "$verify_out" | sed -n 's/^Signer #1 certificate SHA-256 digest:[[:space:]]*//p' | head -n 1 | tr '[:upper:]' '[:lower:]')"
+
+            if [ "$actual_sha256" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::Signing certificate mismatch for $apk (expected $EXPECTED_CERT_SHA256, got ${actual_sha256:-none})"
+              exit 1
+            fi
+            echo "Verified $apk (SHA-256: $actual_sha256)"
+          done
 
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
@@ -53,64 +129,81 @@ jobs:
           name: mapping-${{ github.sha }}
           path: app/build/outputs/mapping/release
 
-      # Sign APK and create release for tags
+      # Package release artifacts and extract CHANGELOG notes for tags
 
-      - name: Get tag name
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive'
-        env:
-          SIGNING_KEY_PRESENT: ${{ secrets.SIGNING_KEY != '' }}
-        run: |
-          set -x
-          echo "VERSION_TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "HAS_SIGNING_KEY=${SIGNING_KEY_PRESENT}" >> $GITHUB_ENV
-
-      - name: Sign APK
-        if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive' && env.HAS_SIGNING_KEY == 'true'
-        uses: r0adkll/sign-android-release@f30bdd30588842ac76044ecdbd4b6d0e3e813478
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: '35.0.1'
-
-      - name: Clean up build artifacts
+      - name: Prepare release artifacts and notes
         if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive'
         run: |
-          set -e
+          set -euo pipefail
 
-          pick_apk() {
-            local abi="$1"
-            if [ -f "app/build/outputs/apk/release/app-${abi}-release-unsigned-signed.apk" ]; then
-              echo "app/build/outputs/apk/release/app-${abi}-release-unsigned-signed.apk"
-            elif [ -f "app/build/outputs/apk/release/app-${abi}-release-signed.apk" ]; then
-              echo "app/build/outputs/apk/release/app-${abi}-release-signed.apk"
-            else
-              echo "app/build/outputs/apk/release/app-${abi}-release.apk"
-            fi
-          }
+          mv app/build/outputs/apk/release/app-universal-release.apk "archive-${VERSION_TAG}.apk"
+          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk "archive-arm64-v8a-${VERSION_TAG}.apk"
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk "archive-armeabi-v7a-${VERSION_TAG}.apk"
+          mv app/build/outputs/apk/release/app-x86-release.apk "archive-x86-${VERSION_TAG}.apk"
+          mv app/build/outputs/apk/release/app-x86_64-release.apk "archive-x86_64-${VERSION_TAG}.apk"
 
-          mv "$(pick_apk universal)" archive-${{ env.VERSION_TAG }}.apk
-          sha=$(sha256sum archive-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }')
-          echo "APK_UNIVERSAL_SHA=$sha" >> $GITHUB_ENV
+          APK_UNIVERSAL_SHA=$(sha256sum "archive-${VERSION_TAG}.apk" | awk '{ print $1 }')
+          APK_ARM64_V8A_SHA=$(sha256sum "archive-arm64-v8a-${VERSION_TAG}.apk" | awk '{ print $1 }')
+          APK_ARMEABI_V7A_SHA=$(sha256sum "archive-armeabi-v7a-${VERSION_TAG}.apk" | awk '{ print $1 }')
+          APK_X86_SHA=$(sha256sum "archive-x86-${VERSION_TAG}.apk" | awk '{ print $1 }')
+          APK_X86_64_SHA=$(sha256sum "archive-x86_64-${VERSION_TAG}.apk" | awk '{ print $1 }')
 
-          mv "$(pick_apk arm64-v8a)" archive-arm64-v8a-${{ env.VERSION_TAG }}.apk
-          sha=$(sha256sum archive-arm64-v8a-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }')
-          echo "APK_ARM64_V8A_SHA=$sha" >> $GITHUB_ENV
+          export APK_UNIVERSAL_SHA APK_ARM64_V8A_SHA APK_ARMEABI_V7A_SHA APK_X86_SHA APK_X86_64_SHA
 
-          mv "$(pick_apk armeabi-v7a)" archive-armeabi-v7a-${{ env.VERSION_TAG }}.apk
-          sha=$(sha256sum archive-armeabi-v7a-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }')
-          echo "APK_ARMEABI_V7A_SHA=$sha" >> $GITHUB_ENV
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
 
-          mv "$(pick_apk x86)" archive-x86-${{ env.VERSION_TAG }}.apk
-          sha=$(sha256sum archive-x86-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }')
-          echo "APK_X86_SHA=$sha" >> $GITHUB_ENV
+          tag = os.environ["VERSION_TAG"]
+          tag_no_v = tag[1:] if tag.startswith("v") else tag
+          heading_re = re.compile(
+              rf"^##\s+\[?v?{re.escape(tag_no_v)}\]?(?:\s|$)"
+          )
 
-          mv "$(pick_apk x86_64)" archive-x86_64-${{ env.VERSION_TAG }}.apk
-          sha=$(sha256sum archive-x86_64-${{ env.VERSION_TAG }}.apk | awk '{ print $1 }')
-          echo "APK_X86_64_SHA=$sha" >> $GITHUB_ENV
+          changelog_section = ""
+          changelog_path = Path("CHANGELOG.md")
+          if changelog_path.is_file():
+              lines = changelog_path.read_text(encoding="utf-8").splitlines()
+              capturing = False
+              captured = []
+              for line in lines:
+                  if not capturing:
+                      if heading_re.match(line):
+                          capturing = True
+                  else:
+                      if line.startswith("## "):
+                          break
+                      captured.append(line)
+              changelog_section = "\n".join(captured).strip()
+
+          changelog_found = bool(changelog_section)
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              env_file.write(f"CHANGELOG_FOUND={'true' if changelog_found else 'false'}\n")
+
+          parts = [f"## Release {tag}"]
+          if changelog_section:
+              parts.append(changelog_section)
+
+          checksums = "\n".join([
+              "---",
+              "",
+              "### 📦 Checksums (SHA-256)",
+              "",
+              "| File | SHA-256 |",
+              "| --- | --- |",
+              f"| `archive-arm64-v8a-{tag}.apk` | `{os.environ['APK_ARM64_V8A_SHA']}` |",
+              f"| `archive-{tag}.apk` | `{os.environ['APK_UNIVERSAL_SHA']}` |",
+              f"| `archive-armeabi-v7a-{tag}.apk` | `{os.environ['APK_ARMEABI_V7A_SHA']}` |",
+              f"| `archive-x86_64-{tag}.apk` | `{os.environ['APK_X86_64_SHA']}` |",
+              f"| `archive-x86-{tag}.apk` | `{os.environ['APK_X86_SHA']}` |",
+          ])
+          parts.append(checksums)
+
+          Path("release-notes.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8")
+          PY
+
+          cat release-notes.md
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == 'IMSharman/archive'
@@ -118,18 +211,8 @@ jobs:
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: Archive ${{ env.VERSION_TAG }}
-          body: |
-            ---
-
-            ### Checksums
-
-            | Variant | SHA-256 |
-            | ------- | ------- |
-            | Universal | ${{ env.APK_UNIVERSAL_SHA }} |
-            | arm64-v8a | ${{ env.APK_ARM64_V8A_SHA }} |
-            | armeabi-v7a | ${{ env.APK_ARMEABI_V7A_SHA }} |
-            | x86 | ${{ env.APK_X86_SHA }} |
-            | x86_64 | ${{ env.APK_X86_64_SHA }} |
+          body_path: release-notes.md
+          generate_release_notes: ${{ env.CHANGELOG_FOUND != 'true' }}
           files: |
             archive-${{ env.VERSION_TAG }}.apk
             archive-arm64-v8a-${{ env.VERSION_TAG }}.apk
